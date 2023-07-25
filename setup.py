@@ -16,6 +16,6 @@ setup(
     url='https://github.com/shaharzuler/flow_n_corr_utils',
     classifiers=[
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.8',
     ],
 )
