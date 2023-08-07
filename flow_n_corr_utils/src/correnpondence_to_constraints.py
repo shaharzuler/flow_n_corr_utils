@@ -23,7 +23,7 @@ class Corr2ConstraintsConvertor:
 
         if k_interpolate_sparse_constraints_nn>1:
             for axis in range(voxelized_flow.shape[-1]):
-                self._interpolate_knn_axis(k_interpolate_sparse_constraints_nn, voxelized_flow, axis)
+                voxelized_flow = self._interpolate_knn_axis(k_interpolate_sparse_constraints_nn, voxelized_flow, axis)
 
         output_file_path = save_arr(output_folder_path, "constraints", voxelized_flow)
         return output_file_path
