@@ -19,5 +19,5 @@ def flow_to_corr(flow:np.ndarray, target_pc:np.ndarray, source_pc:np.ndarray) ->
     # now target_estimated_coords[indices][:,0,:] =~ target_pc
     # now source_pc[indices][:,0,:] corresponds to target_pc
 
-    return [indices][:,0,:]
+    return indices[:,0]
 
