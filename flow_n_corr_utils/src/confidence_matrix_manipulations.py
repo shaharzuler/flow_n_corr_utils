@@ -50,9 +50,6 @@ def variance_based_argmax(point_cloud:np.ndarray, p:np.ndarray, axis:int, k:int,
     variance = np.var(nn_probs,1)
 
     var_based_mask = np.where(variance<variance_threshold, True, False)
-    # naive_correspondence = naive_correspondence.astype(float)
-    # naive_correspondence = naive_correspondence.astype(int)
-    # naive_correspondence[~var_based_mask] = np.nan
 
     if plot_var_hist_folder is not None:
         print(f"Confidence mean: {nns_confs.mean()}")

@@ -21,6 +21,7 @@ class Corr2ConstraintsConvertor:
         self, correspondence_h5_path:str, k_nn:int, output_folder_path:str, 
         output_constraints_shape:Tuple, k_interpolate_sparse_constraints_nn:int=124, 
         confidence_matrix_manipulations_config={"axis":1, "remove_high_var_corr":False}) -> str:
+        
         template_point_cloud, unlabeled_point_cloud, p = get_point_clouds_and_p_from_h5(correspondence_h5_path)
         correspondence_template_unlabeled, mask = get_correspondence_from_p(unlabeled_point_cloud, p, confidence_matrix_manipulations_config)
         flow_template_unlabeled = self._flow_from_corr(template_point_cloud, unlabeled_point_cloud, correspondence_template_unlabeled, mask)
