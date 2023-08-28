@@ -6,8 +6,10 @@ from scipy.spatial import cKDTree
 
 from three_d_data_manager import save_arr
 
-from .utils.h5_utils import get_point_clouds_and_corr_from_h5
+from .utils.h5_utils import get_point_clouds_and_p_from_h5
 from .utils.flow_utils import voxelize_flow, smooth_flow
+from .confidence_matrix_manipulations import get_correspondence_from_p
+
 
 
 
@@ -15,9 +17,13 @@ class Corr2ConstraintsConvertor:
     def __init__(self) -> None:
         pass
 
-    def convert_corr_to_constraints(self, correspondence_h5_path:str, k_nn:int, output_folder_path:str, output_constraints_shape:Tuple, k_interpolate_sparse_constraints_nn:int=124) -> str:
-        template_point_cloud, unlabeled_point_cloud, correspondence_template_unlabeled = get_point_clouds_and_corr_from_h5(correspondence_h5_path)
-        flow_template_unlabeled = self._flow_from_corr(template_point_cloud, unlabeled_point_cloud, correspondence_template_unlabeled)
+    def convert_corr_to_constraints(
+        self, correspondence_h5_path:str, k_nn:int, output_folder_path:str, 
+        output_constraints_shape:Tuple, k_interpolate_sparse_constraints_nn:int=124, 
+        confidence_matrix_manipulations_config={"axis":1, "remove_high_var_corr":False}) -> str:
+        template_point_cloud, unlabeled_point_cloud, p = get_point_clouds_and_p_from_h5(correspondence_h5_path)
+        correspondence_template_unlabeled, mask = get_correspondence_from_p(unlabeled_point_cloud, p, confidence_matrix_manipulations_config)
+        flow_template_unlabeled = self._flow_from_corr(template_point_cloud, unlabeled_point_cloud, correspondence_template_unlabeled, mask)
         smooth_flow_template_unlabeled = smooth_flow(template_point_cloud, flow_template_unlabeled, k_nn)
         voxelized_flow = voxelize_flow(smooth_flow_template_unlabeled, template_point_cloud, output_constraints_shape) 
 
@@ -45,8 +51,9 @@ class Corr2ConstraintsConvertor:
         return voxelized_flow
 
     @staticmethod
-    def _flow_from_corr(point_cloud1:np.array, point_cloud2:np.array, correspondence12:np.array) -> np.array:
-        point_cloud2_in_point_cloud1_coords = point_cloud2[correspondence12]
-        flow12 = point_cloud2_in_point_cloud1_coords - point_cloud1
-        return flow12
+    def _flow_from_corr(point_cloud1:np.ndarray, point_cloud2:np.ndarray, correspondence12:np.ndarray, mask:np.ndarray) -> np.ndarray:
+        point_cloud2_in_point_cloud1_coords = point_cloud2[correspondence12] # shape: [N,3]
+        flow12 = point_cloud2_in_point_cloud1_coords - point_cloud1 # shape: [N,3]
+        flow12[~mask] = np.nan
+        return flow12 # shape: [N,3]
 

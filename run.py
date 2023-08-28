@@ -2,12 +2,19 @@ from flow_n_corr_utils import Corr2ConstraintsConvertor
 
 
 output_constraints_arr_path = Corr2ConstraintsConvertor().convert_corr_to_constraints(
-    correspondence_h5_path="/home/shahar/cardio_corr/outputs/outputs_20230723_123643/sts_training_output_20230723_124335/inference_20230723_124414/model_inference.hdf5",
-     k_nn=1, 
-     output_folder_path="/home/shahar/cardio_corr/my_packages/flow_n_corr_utils_project/flow_n_corr_utils/outputs2",
-     output_constraints_shape=(200, 200, 136, 3),
-     k_interpolate_sparse_constraints_nn=26 #a 3x3x3 pixels cube
-     )
+    correspondence_h5_path="/home/shahar/cardio_corr/outputs/outputs_20230817_145413/sts_training_output_20230817145426/inference_20230818_032131/model_inference.hdf5",
+    k_nn=1, 
+    output_folder_path="/home/shahar/cardio_corr/my_packages/flow_n_corr_utils_project/flow_n_corr_utils/outputs2",
+    output_constraints_shape=(200, 200, 136, 3),
+    k_interpolate_sparse_constraints_nn=26, # a 3x3x3 pixels cube,
+    confidence_matrix_manipulations_config={
+                                "remove_high_var_corr": True,
+                                "axis": 1,
+                                "k": 20,
+                                "variance_threshold": 0.5E-5,
+                                "plot_var_hist_folder": ""
+                            }
+    )
 
 
 # TODO:
