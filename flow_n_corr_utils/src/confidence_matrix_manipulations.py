@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import torch
 
+from .visualization.flow_2d_visualization import disp_flow_as_arrows
 from .utils.geometry_utils import knn
 
 def get_correspondence_from_p(point_cloud:np.ndarray, p:np.ndarray, confidence_matrix_manipulations_config:Dict) -> Tuple[np.ndarray, np.ndarray]:
@@ -16,7 +17,7 @@ def get_correspondence_from_p(point_cloud:np.ndarray, p:np.ndarray, confidence_m
             axis=confidence_matrix_manipulations_config["axis"], 
             k=confidence_matrix_manipulations_config["k"], 
             variance_threshold=confidence_matrix_manipulations_config["variance_threshold"],
-            plot_var_hist_folder=confidence_matrix_manipulations_config["plot_var_hist_folder"]
+            plot_folder=confidence_matrix_manipulations_config["plot_folder"]
             )
     else:
         correspondence = np.argmax(p, axis=confidence_matrix_manipulations_config["axis"])
@@ -24,9 +25,7 @@ def get_correspondence_from_p(point_cloud:np.ndarray, p:np.ndarray, confidence_m
     
     return correspondence, mask
 
-
-
-def variance_based_argmax(point_cloud:np.ndarray, p:np.ndarray, axis:int, k:int, variance_threshold:float, plot_var_hist_folder:str=None, num_hist_bins:int=250) -> np.ndarray:
+def variance_based_argmax(point_cloud:np.ndarray, p:np.ndarray, axis:int, k:int, variance_threshold:float, plot_folder:str=None, num_hist_bins:int=250) -> np.ndarray:
     """
     Given p [NxN] matrix, the confidence of all argmax points of point_cloud [Nx3] is replaced by 
         np.nan if the variance between the point confidence and it's k nearest neighbors'
@@ -51,13 +50,13 @@ def variance_based_argmax(point_cloud:np.ndarray, p:np.ndarray, axis:int, k:int,
 
     var_based_mask = np.where(variance<variance_threshold, True, False)
 
-    if plot_var_hist_folder is not None:
+    if plot_folder is not None:
         print(f"Confidence mean: {nns_confs.mean()}")
         print(f"Unique argmax values: {np.unique(naive_correspondence).shape[0]}")
         print(f"removed {(~var_based_mask).sum()} out of {naive_correspondence.shape[0]} indices from correspondence results")
         plt.close()
         plt.hist(variance, bins=num_hist_bins)
         plt.show()
-        plt.savefig(os.path.join(plot_var_hist_folder, "variance_histogram.jpg"), dpi=1200)
+        plt.savefig(os.path.join(plot_folder, "variance_histogram.jpg"), dpi=1200)
     
     return naive_correspondence, var_based_mask

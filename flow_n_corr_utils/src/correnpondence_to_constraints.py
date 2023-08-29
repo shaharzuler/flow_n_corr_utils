@@ -1,14 +1,18 @@
 from typing import Tuple
+import os
 
 import numpy as np
 from scipy.interpolate import griddata
 from scipy.spatial import cKDTree
+from matplotlib import pyplot as plt
 
 from three_d_data_manager import save_arr
 
 from .utils.h5_utils import get_point_clouds_and_p_from_h5
 from .utils.flow_utils import voxelize_flow, smooth_flow
 from .confidence_matrix_manipulations import get_correspondence_from_p
+from .visualization.flow_2d_visualization import disp_flow_as_arrows
+from .utils.flow_utils import xyz3_to_3xyz, t3xy_to_xy3
 
 
 
@@ -27,6 +31,8 @@ class Corr2ConstraintsConvertor:
         flow_template_unlabeled = self._flow_from_corr(template_point_cloud, unlabeled_point_cloud, correspondence_template_unlabeled, mask)
         smooth_flow_template_unlabeled = smooth_flow(template_point_cloud, flow_template_unlabeled, k_nn)
         voxelized_flow = voxelize_flow(smooth_flow_template_unlabeled, template_point_cloud, output_constraints_shape) 
+        
+        self.save_constraints_sections_visualization(output_constraints_shape, confidence_matrix_manipulations_config, template_point_cloud, unlabeled_point_cloud, correspondence_template_unlabeled, mask, voxelized_flow)
 
         if k_interpolate_sparse_constraints_nn>1:
             for axis in range(voxelized_flow.shape[-1]):
@@ -34,6 +40,19 @@ class Corr2ConstraintsConvertor:
 
         output_file_path = save_arr(output_folder_path, "constraints", voxelized_flow)
         return output_file_path
+
+    def save_constraints_sections_visualization(self, output_constraints_shape, confidence_matrix_manipulations_config, template_point_cloud, unlabeled_point_cloud, correspondence_template_unlabeled, mask, voxelized_flow):
+        #TODO move to some utils
+        empty_image = np.zeros(shape=output_constraints_shape[:-1], dtype=float)+0.5
+        arrows_disp = disp_flow_as_arrows(img=empty_image.copy(), seg=None, flow=xyz3_to_3xyz(voxelized_flow), arrow_scale_factor=2)
+        flow_template_unlabeled_outliars = self._flow_from_corr(template_point_cloud, unlabeled_point_cloud, correspondence_template_unlabeled, ~mask)
+        voxelized_flow_outliars = voxelize_flow(flow_template_unlabeled_outliars, template_point_cloud, output_constraints_shape) 
+        arrows_disp_outliars = disp_flow_as_arrows(img=empty_image.copy(), seg=None, flow=xyz3_to_3xyz(voxelized_flow_outliars), arrow_scale_factor=1, emphesize=True) ### TODO extract method
+        
+        arrows_disp_avg = (arrows_disp+arrows_disp_outliars)/2
+
+        plt.imshow(t3xy_to_xy3(arrows_disp_avg[0]))
+        plt.savefig(os.path.join(confidence_matrix_manipulations_config["plot_folder"], "constraints_sections.jpg"), dpi=1200)
 
     def _interpolate_knn_axis(self, k_interpolate_sparse_constraints_nn:int, voxelized_flow:np.array, axis:int) -> np.array:
         data_mask = np.isfinite(voxelized_flow[:,:,:,axis] )

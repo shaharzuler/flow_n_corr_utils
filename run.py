@@ -10,9 +10,9 @@ output_constraints_arr_path = Corr2ConstraintsConvertor().convert_corr_to_constr
     confidence_matrix_manipulations_config={
                                 "remove_high_var_corr": True,
                                 "axis": 1,
-                                "k": 20,
+                                "k": 5,#20,
                                 "variance_threshold": 0.5E-5,
-                                "plot_var_hist_folder": ""
+                                "plot_folder": ""
                             }
     )
 

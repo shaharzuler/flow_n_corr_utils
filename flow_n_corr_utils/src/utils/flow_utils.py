@@ -4,7 +4,15 @@ import numpy as np
 
 from .geometry_utils import calc_knn, flow_median_filter
 
+def xyz3_to_3xyz(flow:np.ndarray) -> np.ndarray:
+    return np.transpose(flow, (3,0,1,2))
 
+def t3xyz_to_xyz3(flow:np.ndarray) -> np.ndarray:
+    return np.transpose(flow, (1,2,3,0))
+
+def t3xy_to_xy3(img:np.ndarray) -> np.ndarray:
+    return np.transpose(img, (1,2,0))
+    
 def smooth_flow(point_cloud:np.array, flow:np.array, k_nn:int):
     nn_idxs = calc_knn(point_cloud, k_nn)
     smooth_flow = flow_median_filter(flow, nn_idxs, k_nn) if (k_nn > 1) else flow # [N, 3]

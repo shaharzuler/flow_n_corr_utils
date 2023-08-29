@@ -86,15 +86,20 @@ def get_mask_contours(mask:np.ndarray, downsample_factor:int=2) -> np.ndarray:
     contours = contours[::downsample_factor,:,:]
     return contours
 
-def disp_flow_as_arrows(img:np.ndarray, seg:np.ndarray, flow:np.ndarray, text:str=None, arrow_scale_factor:int=1) -> np.ndarray:
+def disp_flow_as_arrows(img:np.ndarray, seg:np.ndarray, flow:np.ndarray, text:str=None, arrow_scale_factor:int=1, emphesize:bool=False) -> np.ndarray:
     img_slices_gray = extract_img_middle_slices(img)
     img_slice_x, img_slice_y, img_slice_z = [cv2.cvtColor(slice.astype(np.float32),cv2.COLOR_GRAY2RGB) for slice in img_slices_gray]
-    mask_x, mask_y, mask_z = extract_img_middle_slices(seg)
+    if seg is None:
+        mask_hint_x, mask_hint_y, mask_hint_z = extract_img_middle_slices(flow[0,:,:,:]) # assuming flow will appear in all axes
+        mask_x, mask_y, mask_z = ~np.isnan(mask_hint_x), ~np.isnan(mask_hint_y), ~np.isnan(mask_hint_z)
+
+    else:
+        mask_x, mask_y, mask_z = extract_img_middle_slices(seg)
     slice_x_flow, slice_y_flow, slice_z_flow = get_2d_flow_sections(flow)
 
-    slice_x_w_arrows = _add_arrows_from_mask_on_2d_img(img_slice_x, mask_x, slice_x_flow, arrow_scale_factor, slice_name="x")
-    slice_y_w_arrows = _add_arrows_from_mask_on_2d_img(img_slice_y, mask_y, slice_y_flow, arrow_scale_factor, slice_name="y")
-    slice_z_w_arrows = _add_arrows_from_mask_on_2d_img(img_slice_z, mask_z, slice_z_flow, arrow_scale_factor, slice_name="z")
+    slice_x_w_arrows = _add_arrows_from_mask_on_2d_img(img_slice_x, mask_x, slice_x_flow, arrow_scale_factor, slice_name="x", seg=seg, emphesize=emphesize)
+    slice_y_w_arrows = _add_arrows_from_mask_on_2d_img(img_slice_y, mask_y, slice_y_flow, arrow_scale_factor, slice_name="y", seg=seg, emphesize=emphesize)
+    slice_z_w_arrows = _add_arrows_from_mask_on_2d_img(img_slice_z, mask_z, slice_z_flow, arrow_scale_factor, slice_name="z", seg=seg, emphesize=emphesize)
 
     all_flow_arrowed_disp = np.concatenate([slice_x_w_arrows, slice_y_w_arrows, slice_z_w_arrows], axis=1)
     if text is not None:
@@ -166,11 +171,12 @@ def _disp_single_flow_colors(flow:np.ndarray, text:str=None) -> np.ndarray:
         flow_disp = np.transpose(flow_disp, (2,0,1))
     return flow_disp
 
-def _add_flow_contour_arrows(image:np.ndarray, contours:np.ndarray, slice_flow:np.ndarray, arrow_scale_factor:int, slice_name:str, equal_arrow_length:bool=False, ) -> np.ndarray:
+def _add_flow_contour_arrows(image:np.ndarray, contours:np.ndarray, slice_flow:np.ndarray, arrow_scale_factor:int, slice_name:str, equal_arrow_length:bool=False, emphesize:bool=False) -> np.ndarray:
+    arrow_color, circle_color = ((0, 0, 0), (1, 1, 1)) if not emphesize else ((1, 0, 0.1), (1, 0.1, 0))
     for contour in contours:
         start, end = _get_arrow_start_end_coords(contour, slice_flow, arrow_scale_factor, slice_name=slice_name, equal_arrow_length=equal_arrow_length)
-        image = cv2.arrowedLine(image, (start[0], start[1]), (end[0], end[1]), color=(0, 0, 0), thickness=1)
-        image = cv2.circle(image, (end[0], end[1]), radius=1, color=(1,1,1), thickness=-1)
+        image = cv2.arrowedLine(image, (start[0], start[1]), (end[0], end[1]), color=arrow_color, thickness=1)
+        image = cv2.circle(image, (end[0], end[1]), radius=1, color=circle_color, thickness=-1)
 
     return image
 
@@ -184,10 +190,16 @@ def _get_arrow_start_end_coords(contour:np.ndarray, slice_flow:np.ndarray, arrow
     end = np.round(start + delta * arrow_scale_factor).astype(start.dtype) 
     return start, end
 
-def _add_arrows_from_mask_on_2d_img(img_slice:np.ndarray, mask_slice:np.ndarray, flow_slice:np.ndarray, arrow_scale_factor:int, slice_name:str) -> np.ndarray:
-    contours = get_mask_contours(mask_slice)        
-    img_slice_w_arrows = _add_flow_contour_arrows(img_slice, contours, flow_slice, slice_name=slice_name, arrow_scale_factor=arrow_scale_factor)
+def _add_arrows_from_mask_on_2d_img(img_slice:np.ndarray, mask_slice:np.ndarray, flow_slice:np.ndarray, arrow_scale_factor:int, slice_name:str, seg=None, emphesize=False) -> np.ndarray:
+    if seg is None:
+        contours = sparse_flow_in_contours_format(mask_slice)
+    else:
+        contours = get_mask_contours(mask_slice) # shape: [N,1,2]
+    img_slice_w_arrows = _add_flow_contour_arrows(img_slice, contours, flow_slice, slice_name=slice_name, arrow_scale_factor=arrow_scale_factor, emphesize=emphesize)
     return img_slice_w_arrows
+
+def sparse_flow_in_contours_format(mask_slice:np.ndarray, scale_down_factor:int=2):
+    return np.expand_dims(np.array([*np.where(mask_slice)]).T,1)[::scale_down_factor,:,::-1] # shape: [N,1,2]
 
 def _get_most_contours_from_hirarchies(contours:Tuple) -> np.ndarray:
     most_contours = np.zeros([0])
