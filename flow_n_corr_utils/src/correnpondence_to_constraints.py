@@ -13,7 +13,7 @@ from .utils.flow_utils import voxelize_flow, smooth_flow
 from .confidence_matrix_manipulations import get_correspondence_from_p
 from .visualization.flow_2d_visualization import disp_flow_as_arrows
 from .utils.flow_utils import xyz3_to_3xyz, t3xy_to_xy3
-
+from .flow_to_correspondence import get_flow_in_target_coords
 
 
 
@@ -24,16 +24,54 @@ class Corr2ConstraintsConvertor:
     def convert_corr_to_constraints(
         self, correspondence_h5_path:str, k_nn:int, output_folder_path:str, 
         output_constraints_shape:Tuple, k_interpolate_sparse_constraints_nn:int=124, 
-        confidence_matrix_manipulations_config={"axis":1, "remove_high_var_corr":False}) -> str:
+        confidence_matrix_manipulations_config={"axis":1, "remove_high_var_corr":False}, gt_flow_path:np.ndarray=None, orig_img_path:np.ndarray=None) -> str:
         
         template_point_cloud, unlabeled_point_cloud, p = get_point_clouds_and_p_from_h5(correspondence_h5_path)
-        correspondence_template_unlabeled, mask = get_correspondence_from_p(unlabeled_point_cloud, p, confidence_matrix_manipulations_config)
-        flow_template_unlabeled = self._flow_from_corr(template_point_cloud, unlabeled_point_cloud, correspondence_template_unlabeled, mask)
+                  
+        correspondence_template_unlabeled, mask, variance = get_correspondence_from_p(unlabeled_point_cloud, p, confidence_matrix_manipulations_config)
+        flow_template_unlabeled_naive = self._corr_to_flow(template_point_cloud, unlabeled_point_cloud, correspondence_template_unlabeled)#, mask)
+        flow_template_unlabeled = flow_template_unlabeled_naive.copy()
+        flow_template_unlabeled[~mask] = np.nan
+
         smooth_flow_template_unlabeled = smooth_flow(template_point_cloud, flow_template_unlabeled, k_nn)
         voxelized_flow = voxelize_flow(smooth_flow_template_unlabeled, template_point_cloud, output_constraints_shape) 
-        
-        self.save_constraints_sections_visualization(output_constraints_shape, confidence_matrix_manipulations_config, template_point_cloud, unlabeled_point_cloud, correspondence_template_unlabeled, mask, voxelized_flow)
+        if orig_img_path is not None:
+            orig_img = np.load(orig_img_path)
+            # TODO add utils fn for normalizing img https://github.com/shaharzuler/four_d_ct_cost_unrolling/four_d_ct_cost_unrolling/src/dataset_handlers/seg_puller_cardio_dataset.py#L36
+            min_ = orig_img.min()
+            max_ = orig_img.max()
+            img_norm = (orig_img-min_)/(max_-min_) 
+        else:
+            img_norm = np.zeros(shape=output_constraints_shape[:-1], dtype=float)+0.5
 
+        self.save_constraints_sections_visualization(
+            output_constraints_shape=output_constraints_shape, 
+            confidence_matrix_manipulations_config=confidence_matrix_manipulations_config, 
+            template_point_cloud=template_point_cloud, 
+            mask=mask, 
+            voxelized_flow=voxelized_flow, 
+            flow_template_unlabeled_naive=flow_template_unlabeled_naive.copy(), 
+            text="pred",
+            orig_image=img_norm)
+        
+        if gt_flow_path is not None:
+            gt_flow = np.load(gt_flow_path)
+            _, gt_flow_in_target_coords = get_flow_in_target_coords(gt_flow, template_point_cloud)
+            gt_voxelized_flow = voxelize_flow(gt_flow_in_target_coords, template_point_cloud, output_constraints_shape)
+            error = np.linalg.norm((gt_flow_in_target_coords-flow_template_unlabeled_naive),2,axis=1)
+            self.save_constraints_sections_visualization(
+                output_constraints_shape=output_constraints_shape, 
+                confidence_matrix_manipulations_config=confidence_matrix_manipulations_config, 
+                template_point_cloud=template_point_cloud, 
+                mask=np.ones_like(mask), 
+                voxelized_flow=gt_voxelized_flow, 
+                flow_template_unlabeled_naive=gt_flow_in_target_coords.copy(), 
+                text="gt", 
+                orig_image=img_norm)
+
+            self.plot_error_vs_var(confidence_matrix_manipulations_config, variance, error)
+
+            
         if k_interpolate_sparse_constraints_nn>1:
             for axis in range(voxelized_flow.shape[-1]):
                 voxelized_flow = self._interpolate_knn_axis(k_interpolate_sparse_constraints_nn, voxelized_flow, axis)
@@ -41,18 +79,31 @@ class Corr2ConstraintsConvertor:
         output_file_path = save_arr(output_folder_path, "constraints", voxelized_flow)
         return output_file_path
 
-    def save_constraints_sections_visualization(self, output_constraints_shape, confidence_matrix_manipulations_config, template_point_cloud, unlabeled_point_cloud, correspondence_template_unlabeled, mask, voxelized_flow):
+    def plot_error_vs_var(self, confidence_matrix_manipulations_config, variance, error): # TODO 
+        plt.close()
+        plt.scatter(variance, error)
+        plt.xlabel("Variance")
+        plt.ylabel("Error")
+        plt.show()
+        plt.savefig(os.path.join(confidence_matrix_manipulations_config["plot_folder"],"error_vs_var.jpg"))
+
+    def save_constraints_sections_visualization(
+        self, output_constraints_shape, confidence_matrix_manipulations_config, 
+        template_point_cloud, mask, voxelized_flow, flow_template_unlabeled_naive, 
+        text, orig_image):
+
         #TODO move to some utils
-        empty_image = np.zeros(shape=output_constraints_shape[:-1], dtype=float)+0.5
-        arrows_disp = disp_flow_as_arrows(img=empty_image.copy(), seg=None, flow=xyz3_to_3xyz(voxelized_flow), arrow_scale_factor=2)
-        flow_template_unlabeled_outliars = self._flow_from_corr(template_point_cloud, unlabeled_point_cloud, correspondence_template_unlabeled, ~mask)
+
+        arrows_disp = disp_flow_as_arrows(img=orig_image.copy(), seg=None, flow=xyz3_to_3xyz(voxelized_flow))
+        flow_template_unlabeled_outliars = flow_template_unlabeled_naive.copy()
+        flow_template_unlabeled_outliars[mask] = np.nan
         voxelized_flow_outliars = voxelize_flow(flow_template_unlabeled_outliars, template_point_cloud, output_constraints_shape) 
-        arrows_disp_outliars = disp_flow_as_arrows(img=empty_image.copy(), seg=None, flow=xyz3_to_3xyz(voxelized_flow_outliars), arrow_scale_factor=1, emphesize=True) ### TODO extract method
+        arrows_disp_outliars = disp_flow_as_arrows(img=orig_image.copy(), seg=None, flow=xyz3_to_3xyz(voxelized_flow_outliars), arrow_scale_factor=1, emphesize=True) ### TODO extract method
         
         arrows_disp_avg = (arrows_disp+arrows_disp_outliars)/2
 
         plt.imshow(t3xy_to_xy3(arrows_disp_avg[0]))
-        plt.savefig(os.path.join(confidence_matrix_manipulations_config["plot_folder"], "constraints_sections.jpg"), dpi=1200)
+        plt.savefig(os.path.join(confidence_matrix_manipulations_config["plot_folder"], f"constraints_sections_{text}.jpg"), dpi=1200)
 
     def _interpolate_knn_axis(self, k_interpolate_sparse_constraints_nn:int, voxelized_flow:np.array, axis:int) -> np.array:
         data_mask = np.isfinite(voxelized_flow[:,:,:,axis] )
@@ -71,9 +122,9 @@ class Corr2ConstraintsConvertor:
         return voxelized_flow
 
     @staticmethod
-    def _flow_from_corr(point_cloud1:np.ndarray, point_cloud2:np.ndarray, correspondence12:np.ndarray, mask:np.ndarray) -> np.ndarray:
+    def _corr_to_flow(point_cloud1:np.ndarray, point_cloud2:np.ndarray, correspondence12:np.ndarray) -> np.ndarray:
         point_cloud2_in_point_cloud1_coords = point_cloud2[correspondence12] # shape: [N,3]
         flow12 = point_cloud2_in_point_cloud1_coords - point_cloud1 # shape: [N,3]
-        flow12[~mask] = np.nan
+
         return flow12 # shape: [N,3]
 

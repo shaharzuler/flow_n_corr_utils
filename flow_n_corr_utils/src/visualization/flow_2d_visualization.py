@@ -171,7 +171,7 @@ def _disp_single_flow_colors(flow:np.ndarray, text:str=None) -> np.ndarray:
         flow_disp = np.transpose(flow_disp, (2,0,1))
     return flow_disp
 
-def _add_flow_contour_arrows(image:np.ndarray, contours:np.ndarray, slice_flow:np.ndarray, arrow_scale_factor:int, slice_name:str, equal_arrow_length:bool=False, emphesize:bool=False) -> np.ndarray:
+def _add_flow_contour_arrows(image:np.ndarray, contours:np.ndarray, slice_flow:np.ndarray, arrow_scale_factor:int, slice_name:str, equal_arrow_length:bool=False, emphesize:float=0.):#bool=False) -> np.ndarray:
     arrow_color, circle_color = ((0, 0, 0), (1, 1, 1)) if not emphesize else ((1, 0, 0.1), (1, 0.1, 0))
     for contour in contours:
         start, end = _get_arrow_start_end_coords(contour, slice_flow, arrow_scale_factor, slice_name=slice_name, equal_arrow_length=equal_arrow_length)

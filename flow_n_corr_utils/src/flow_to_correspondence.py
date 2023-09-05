@@ -13,11 +13,15 @@ def flow_to_corr(flow:np.ndarray, target_pc:np.ndarray, source_pc:np.ndarray) ->
     source_estimated_coords[indices] =~ source_pc
     target_pc[indices] corresponds to source_pc
     """
-    target_as_int = np.round(target_pc).astype(int)
-    flow_in_target_coords = flow[target_as_int[:,0], target_as_int[:,1], target_as_int[:,2], :]
+    target_as_int, flow_in_target_coords = get_flow_in_target_coords(flow, target_pc)
     source_estimated_coords = target_as_int + flow_in_target_coords
         
     indices = knn(torch.tensor(source_estimated_coords), torch.tensor(source_pc), 1)[1]
     
     return indices
+
+def get_flow_in_target_coords(flow, target_pc):
+    target_as_int = np.round(target_pc).astype(int)
+    flow_in_target_coords = flow[target_as_int[:,0], target_as_int[:,1], target_as_int[:,2], :]
+    return target_as_int, flow_in_target_coords
 

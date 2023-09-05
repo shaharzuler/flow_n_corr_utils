@@ -1,4 +1,5 @@
 import os
+from statistics import variance
 from typing import Dict, Tuple
 
 import scipy
@@ -11,7 +12,7 @@ from .utils.geometry_utils import knn
 
 def get_correspondence_from_p(point_cloud:np.ndarray, p:np.ndarray, confidence_matrix_manipulations_config:Dict) -> Tuple[np.ndarray, np.ndarray]:
     if "remove_high_var_corr" in confidence_matrix_manipulations_config.keys() and confidence_matrix_manipulations_config["remove_high_var_corr"]:
-        correspondence, mask = variance_based_argmax(
+        correspondence, mask, variance = variance_based_argmax(
             point_cloud, 
             p, 
             axis=confidence_matrix_manipulations_config["axis"], 
@@ -22,8 +23,9 @@ def get_correspondence_from_p(point_cloud:np.ndarray, p:np.ndarray, confidence_m
     else:
         correspondence = np.argmax(p, axis=confidence_matrix_manipulations_config["axis"])
         mask = np.ones_like(correspondence).astype(bool)
+        variance = np.zeros_like(correspondence)
     
-    return correspondence, mask
+    return correspondence, mask, variance
 
 def variance_based_argmax(point_cloud:np.ndarray, p:np.ndarray, axis:int, k:int, variance_threshold:float, plot_folder:str=None, num_hist_bins:int=250) -> np.ndarray:
     """
@@ -45,10 +47,10 @@ def variance_based_argmax(point_cloud:np.ndarray, p:np.ndarray, axis:int, k:int,
     elif axis==1:
         nns_confs = p[orig_indices_2d ,indices_closed_to_argmaxes_2d] # shape: [N, k]
     
-    nn_probs = scipy.special.softmax(nns_confs ,1)
-    variance = np.var(nn_probs,1)
+    nn_probs = scipy.special.softmax(nns_confs ,1) # shape: [N, k]
+    variance = np.var(nn_probs,1) # shape: N
 
-    var_based_mask = np.where(variance<variance_threshold, True, False)
+    var_based_mask = np.where(variance<variance_threshold, True, False) # shape: N
 
     if plot_folder is not None:
         print(f"Confidence mean: {nns_confs.mean()}")
@@ -59,4 +61,4 @@ def variance_based_argmax(point_cloud:np.ndarray, p:np.ndarray, axis:int, k:int,
         plt.show()
         plt.savefig(os.path.join(plot_folder, "variance_histogram.jpg"), dpi=1200)
     
-    return naive_correspondence, var_based_mask
+    return naive_correspondence, var_based_mask, variance
