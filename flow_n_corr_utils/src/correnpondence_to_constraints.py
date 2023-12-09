@@ -29,7 +29,7 @@ class Corr2ConstraintsConvertor:
         template_point_cloud, unlabeled_point_cloud, p = get_point_clouds_and_p_from_h5(correspondence_h5_path)
                   
         correspondence_template_unlabeled, mask, variance = get_correspondence_from_p(unlabeled_point_cloud, p, confidence_matrix_manipulations_config)
-        flow_template_unlabeled_naive = self._corr_to_flow(template_point_cloud, unlabeled_point_cloud, correspondence_template_unlabeled)#, mask)
+        flow_template_unlabeled_naive = self.corr_to_flow(template_point_cloud, unlabeled_point_cloud, correspondence_template_unlabeled)#, mask)
         flow_template_unlabeled = flow_template_unlabeled_naive.copy()
         flow_template_unlabeled[~mask] = np.nan
 
@@ -104,7 +104,13 @@ class Corr2ConstraintsConvertor:
 
         plt.imshow(t3xy_to_xy3(arrows_disp_avg[0]))
         plt.savefig(os.path.join(confidence_matrix_manipulations_config["plot_folder"], f"constraints_sections_{text}.jpg"), dpi=1200)
+    
+    @staticmethod
+    def corr_to_flow(point_cloud1:np.ndarray, point_cloud2:np.ndarray, correspondence12:np.ndarray) -> np.ndarray:
+        point_cloud2_in_point_cloud1_coords = point_cloud2[correspondence12] # shape: [N,3]
+        flow12 = point_cloud2_in_point_cloud1_coords - point_cloud1 # shape: [N,3]
 
+        return flow12 # shape: [N,3]
     def _interpolate_knn_axis(self, k_interpolate_sparse_constraints_nn:int, voxelized_flow:np.array, axis:int) -> np.array:
         data_mask = np.isfinite(voxelized_flow[:,:,:,axis] )
         data_coords = np.array(np.where(data_mask)).T
@@ -121,10 +127,5 @@ class Corr2ConstraintsConvertor:
         voxelized_flow[nan_coords_for_interp[:,0], nan_coords_for_interp[:,1], nan_coords_for_interp[:,2], axis ] = interpolated_values
         return voxelized_flow
 
-    @staticmethod
-    def _corr_to_flow(point_cloud1:np.ndarray, point_cloud2:np.ndarray, correspondence12:np.ndarray) -> np.ndarray:
-        point_cloud2_in_point_cloud1_coords = point_cloud2[correspondence12] # shape: [N,3]
-        flow12 = point_cloud2_in_point_cloud1_coords - point_cloud1 # shape: [N,3]
 
-        return flow12 # shape: [N,3]
 
