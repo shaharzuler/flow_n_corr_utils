@@ -106,11 +106,12 @@ class Corr2ConstraintsConvertor:
         plt.savefig(os.path.join(confidence_matrix_manipulations_config["plot_folder"], f"constraints_sections_{text}.jpg"), dpi=1200)
     
     @staticmethod
-    def corr_to_flow(point_cloud1:np.ndarray, point_cloud2:np.ndarray, correspondence12:np.ndarray) -> np.ndarray:
+    def corr_to_flow(point_cloud1:np.ndarray, point_cloud2:np.ndarray, correspondence12:np.ndarray) -> np.ndarray: #TODO move to some utils
         point_cloud2_in_point_cloud1_coords = point_cloud2[correspondence12] # shape: [N,3]
         flow12 = point_cloud2_in_point_cloud1_coords - point_cloud1 # shape: [N,3]
 
         return flow12 # shape: [N,3]
+        
     def _interpolate_knn_axis(self, k_interpolate_sparse_constraints_nn:int, voxelized_flow:np.array, axis:int) -> np.array:
         data_mask = np.isfinite(voxelized_flow[:,:,:,axis] )
         data_coords = np.array(np.where(data_mask)).T
