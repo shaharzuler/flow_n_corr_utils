@@ -196,7 +196,10 @@ def _add_arrows_from_mask_on_2d_img(img_slice:np.ndarray, mask_slice:np.ndarray,
         contours = sparse_flow_in_contours_format(mask_slice)
     else:
         contours = get_mask_contours(mask_slice) # shape: [N,1,2]
-    img_slice_w_arrows = _add_flow_contour_arrows(img_slice, contours, flow_slice, slice_name=slice_name, arrow_scale_factor=arrow_scale_factor, emphesize=emphesize)
+        if len(contours) > 0:
+            img_slice_w_arrows = _add_flow_contour_arrows(img_slice, contours, flow_slice, slice_name=slice_name, arrow_scale_factor=arrow_scale_factor, emphesize=emphesize)
+        else:
+            img_slice_w_arrows = img_slice
     return img_slice_w_arrows
 
 def sparse_flow_in_contours_format(mask_slice:np.ndarray, scale_down_factor:int=2):
