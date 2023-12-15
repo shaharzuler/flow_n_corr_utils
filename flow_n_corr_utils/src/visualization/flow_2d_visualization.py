@@ -82,8 +82,9 @@ def get_2d_flow_sections(flow:np.ndarray) -> Tuple[np.ndarray]:
 
 def get_mask_contours(mask:np.ndarray, downsample_factor:int=2) -> np.ndarray:
     contours, hierarchy = cv2.findContours(image=mask.astype(np.uint8), mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE)
-    contours = _get_most_contours_from_hirarchies(contours)
-    contours = contours[::downsample_factor,:,:]
+    if len(contours) > 0:
+        contours = _get_most_contours_from_hirarchies(contours)
+        contours = contours[::downsample_factor,:,:]
     return contours
 
 def disp_flow_as_arrows(img:np.ndarray, seg:np.ndarray, flow:np.ndarray, text:str=None, arrow_scale_factor:int=1, emphesize:bool=False) -> np.ndarray:
