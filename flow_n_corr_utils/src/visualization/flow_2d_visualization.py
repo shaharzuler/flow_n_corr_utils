@@ -108,14 +108,14 @@ def disp_flow_as_arrows(img:np.ndarray, seg:np.ndarray, flow:np.ndarray, text:st
     all_flow_arrowed_disp = np.expand_dims(np.transpose(all_flow_arrowed_disp, (2, 0, 1)), 0)
     return all_flow_arrowed_disp
 
-def disp_sparse_flow_as_arrows(img:np.ndarray, seg:np.ndarray, flow:np.ndarray, text:str=None, arrow_scale_factor:int=1) -> np.ndarray: # TODO take the with-nans constraints arr and not the arr with zeros.
+def disp_sparse_flow_as_arrows(img:np.ndarray, seg:np.ndarray, flow:np.ndarray, text:str=None, arrow_scale_factor:int=1, emphesize:bool=False) -> np.ndarray: # TODO take the with-nans constraints arr and not the arr with zeros.
     img_slices_gray = extract_img_middle_slices(img)
     img_slice_x, img_slice_y, img_slice_z = [cv2.cvtColor(slice.astype(np.float32),cv2.COLOR_GRAY2RGB) for slice in img_slices_gray]
     slice_x_flow, slice_y_flow, slice_z_flow = get_2d_flow_sections(flow)
 
-    slice_x_w_arrows = _add_sparse_flow_arrows_on_2d_img(img_slice_x, slice_x_flow, arrow_scale_factor)
-    slice_y_w_arrows = _add_sparse_flow_arrows_on_2d_img(img_slice_y, slice_y_flow, arrow_scale_factor)
-    slice_z_w_arrows = _add_sparse_flow_arrows_on_2d_img(img_slice_z, slice_z_flow, arrow_scale_factor)
+    slice_x_w_arrows = _add_sparse_flow_arrows_on_2d_img(img_slice_x, slice_x_flow, arrow_scale_factor, emphesize=emphesize)
+    slice_y_w_arrows = _add_sparse_flow_arrows_on_2d_img(img_slice_y, slice_y_flow, arrow_scale_factor, emphesize=emphesize)
+    slice_z_w_arrows = _add_sparse_flow_arrows_on_2d_img(img_slice_z, slice_z_flow, arrow_scale_factor, emphesize=emphesize)
 
     all_flow_arrowed_disp = np.concatenate([slice_x_w_arrows, slice_y_w_arrows, slice_z_w_arrows], axis=1)
     if text is not None:
@@ -155,13 +155,16 @@ def disp_flow_error_colors(flows_pred:np.ndarray, flows_gt:np.ndarray, flows_con
     flow_error_colors_fig = np.concatenate(rows, axis=1)[None,::]
     return flow_error_colors_fig
 
-def _add_sparse_flow_arrows_on_2d_img(img_slice:np.ndarray, flow_slice:np.ndarray, arrow_scale_factor:int) -> np.ndarray:
+def _add_sparse_flow_arrows_on_2d_img(img_slice:np.ndarray, flow_slice:np.ndarray, arrow_scale_factor:int, emphesize:bool) -> np.ndarray:
+    arrow_color, circle_color = ((0, 0, 0), (1, 1, 1)) if not emphesize else ((1, 0, 0.1), (1, 0.1, 0))
     _, x_start_idxs, y_start_idxs = flow_slice.nonzero()
     deltas = flow_slice[:,x_start_idxs, y_start_idxs] * arrow_scale_factor
     x_ends_idxs = x_start_idxs + deltas[0,:]
     y_ends_idxs = y_start_idxs + deltas[1,:]
     for x_start, y_start, x_end, y_end in zip(x_start_idxs, y_start_idxs, x_ends_idxs, y_ends_idxs):
-        img_slice = cv2.arrowedLine(img_slice,(y_start,x_start),(round(y_end),round(x_end)),color=(0,0,0),thickness=1)
+        img_slice = cv2.arrowedLine(img_slice,(y_start,x_start),(round(y_end),round(x_end)),color=arrow_color,thickness=1)
+        img_slice = cv2.circle(img_slice, (round(y_end),round(x_end)), radius=1, color=circle_color, thickness=-1)
+
     return img_slice
 
 def _disp_single_flow_colors(flow:np.ndarray, text:str=None) -> np.ndarray:
