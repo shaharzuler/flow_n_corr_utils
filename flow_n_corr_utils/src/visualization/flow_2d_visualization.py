@@ -151,6 +151,7 @@ def disp_flow_error_colors(flows_pred:np.ndarray, flows_gt:np.ndarray, flows_con
     rows = [flows_pred_disp, flows_gt_disp, abs_diff_disp, abs_flow_diff_rgb]
     if flows_constraints is not None:
         flows_constraints_disp = _disp_single_flow_colors(flows_constraints, text="constraints")
+        flows_constraints_disp = flows_constraints_disp[:, :flows_pred_disp.shape[1], :flows_pred_disp.shape[2]] # requires more general fix TODO
         rows.append(flows_constraints_disp)
     flow_error_colors_fig = np.concatenate(rows, axis=1)[None,::]
     return flow_error_colors_fig
