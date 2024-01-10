@@ -198,13 +198,12 @@ def _get_arrow_start_end_coords(contour:np.ndarray, slice_flow:np.ndarray, arrow
 def _add_arrows_from_mask_on_2d_img(img_slice:np.ndarray, mask_slice:np.ndarray, flow_slice:np.ndarray, arrow_scale_factor:int, slice_name:str, seg=None, emphesize=False) -> np.ndarray:
     if seg is None:
         contours = sparse_flow_in_contours_format(mask_slice)
-        img_slice_w_arrows = img_slice
     else:
         contours = get_mask_contours(mask_slice) # shape: [N,1,2]
-        if len(contours) > 0:
-            img_slice_w_arrows = _add_flow_contour_arrows(img_slice, contours, flow_slice, slice_name=slice_name, arrow_scale_factor=arrow_scale_factor, emphesize=emphesize)
-        else:
-            img_slice_w_arrows = img_slice
+    if len(contours) > 0:
+        img_slice_w_arrows = _add_flow_contour_arrows(img_slice, contours, flow_slice, slice_name=slice_name, arrow_scale_factor=arrow_scale_factor, emphesize=emphesize)
+    else:
+        img_slice_w_arrows = img_slice
     return img_slice_w_arrows
 
 def sparse_flow_in_contours_format(mask_slice:np.ndarray, scale_down_factor:int=2):
