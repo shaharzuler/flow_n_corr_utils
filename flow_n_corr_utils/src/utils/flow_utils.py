@@ -29,3 +29,9 @@ def voxelize_flow(flow:np.array, point_cloud:np.array, output_constraints_shape:
     voxels_flow[template_idxs[:,0], template_idxs[:,1], template_idxs[:,2], 2] = flow[:,2]
 
     return voxels_flow
+
+def crop_flow_by_mask_center(center, x, y, z, flow_field_rotated:np.array, orig_vertices_mean:np.array) -> np.array:
+    start = (2*center - orig_vertices_mean).astype(int)
+    end = (2*center - orig_vertices_mean + np.array((x, y, z))).astype(int)
+    flow_field_cropped = flow_field_rotated[ start[0,0]:end[0,0], start[0,1]:end[0,1], start[0,2]:end[0,2], : ]
+    return flow_field_cropped
