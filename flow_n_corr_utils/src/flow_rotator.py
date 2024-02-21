@@ -1,3 +1,4 @@
+from typing import Tuple
 import numpy as np
 
 class FlowRotator:
@@ -23,6 +24,11 @@ class FlowRotator:
         flow_field_rotated = self._rotate_flow_vals(valid_coords, valid_flow_vals, rotation_matrix)
 
         return flow_field_rotated
+
+    def _get_valid_coords_and_indices(self, rot_coords:np.array) -> Tuple[np.array,np.array]:
+        valid_indices = np.all((rot_coords >= 0) & (rot_coords+0.5 < (self.x_flow, self.y_flow, self.z_flow)), axis=-1)
+        valid_coords = np.round(rot_coords[valid_indices]).astype(int) 
+        return valid_indices, valid_coords
 
     def _rotate_coords(self, coords:np.array, rotation_matrix:np.array)->np.array:
         rot_coords = np.dot(coords.reshape((-1, 3)), rotation_matrix)
