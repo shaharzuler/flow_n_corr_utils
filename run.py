@@ -17,11 +17,3 @@ output_constraints_arr_path = Corr2ConstraintsConvertor().convert_corr_to_constr
                             gt_flow_path= "/home/shahar/cardio_corr/outputs/synthetic_dataset42/thetas_0.0_0.0_rs_0.6_0.6_h_0.6_random_3_0.4_mask_True_blur_radious_7/flow_for_mask_thetas_0.0_0.0_rs_0.6_0.6_h_0.6_random_3_0.4_mask_True_blur_radious_7.npy",#"/home/shahar/cardio_corr/outputs/synthetic_dataset47/thetas_0.0_0.0_rs_0.5_0.5_h_0.5_linear_mask_True_blur_radious_7/flow_for_image_thetas_0.0_0.0_rs_0.5_0.5_h_0.5_linear_mask_True_blur_radious_7.npy" #
                             orig_img_path="/home/shahar/cardio_corr/outputs/synthetic_dataset42/thetas_0.0_0.0_rs_0.6_0.6_h_0.6_random_3_0.4_mask_True_blur_radious_7/image_skewed_thetas_0.0_0.0_rs_0.6_0.6_h_0.6_random_3_0.4_mask_True_blur_radious_7.npy"
     )
-
-
-# TODO:
-# method_args={
-#     "corr_results_h5_paths": ["/home/shahar/cardio_corr/my_packages/sts_project/STS/outputs_20230712_121917/inference_20230712_121934/model_inference.hdf5"],
-#     "knn": 100
-#     }
-# create_corresponcence_animation(method="knn", method_args=method_args, output_path="/home/shahar/cardio_corr/my_packages/flow_n_corr_utils_project/flow_n_corr_utils/outputs") 

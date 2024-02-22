@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 from ..visualization.flow_2d_visualization import disp_flow_as_arrows
-from .flow_utils import xyz3_to_3xyz, voxelize_flow
+from .flow_utils_basic import xyz3_to_3xyz, voxelize_flow
 from .image_utils import t3xy_to_xy3
 
 

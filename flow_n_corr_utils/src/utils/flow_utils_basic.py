@@ -4,13 +4,7 @@ import numpy as np
 from scipy.interpolate import griddata
 from scipy.spatial import cKDTree
 
-from three_d_data_manager import save_arr
-
 from .geometry_utils import calc_knn, flow_median_filter
-
-from .image_utils import get_norm_img
-from .contours_flow_visualization import save_contour_flow_sections_visualization
-
 
 def xyz3_to_3xyz(flow:np.ndarray) -> np.ndarray:
     return np.transpose(flow, (3,0,1,2))
@@ -23,11 +17,6 @@ def corr_cloud_to_flow_cloud(point_cloud1:np.ndarray, point_cloud2:np.ndarray, c
     flow12 = point_cloud2_in_point_cloud1_coords - point_cloud1 # shape: [N,3]
 
     return flow12 # shape: [N,3]
-
-def smooth_flow(point_cloud:np.array, flow:np.array, k_nn:int):
-    nn_idxs = calc_knn(point_cloud, k_nn)
-    smooth_flow = flow_median_filter(flow, nn_idxs, k_nn) if (k_nn > 1) else flow # [N, 3]
-    return smooth_flow
 
 def voxelize_flow(flow:np.array, point_cloud:np.array, output_constraints_shape:Tuple) -> np.array:
     template_idxs = np.round(point_cloud).astype(int)
@@ -64,24 +53,7 @@ def interpolate_from_flow_in_axis(k:int, voxelized_flow:np.array, axis:int) -> n
     voxelized_flow[nan_coords_for_interp[:,0], nan_coords_for_interp[:,1], nan_coords_for_interp[:,2], axis ] = interpolated_values
     return voxelized_flow
 
-def voxelize_and_visualize_3d_vecs(vectors_cloud, point_cloud, output_shape, text_vis, output_arr_filename, output_folder, k=1, img_path=None):
-    voxelized_vectors = voxelize_flow(vectors_cloud, point_cloud, output_shape) 
-
-    img_norm = get_norm_img(img_path, output_shape)
-
-    save_contour_flow_sections_visualization(
-        output_constraints_shape=output_shape, 
-        plot_folder=output_folder, 
-        point_cloud=point_cloud, 
-        mask=None, 
-        voxelized_flow=voxelized_vectors, 
-        flow=vectors_cloud, 
-        text=text_vis,
-        orig_image=img_norm)
-
-    if k>1:
-        for axis in range(voxelized_vectors.shape[-1]):
-            voxelized_vectors = interpolate_from_flow_in_axis(k, voxelized_vectors, axis)
-    output_file_path = save_arr(output_folder, output_arr_filename, voxelized_vectors)
-
-    return output_file_path
+def smooth_flow(point_cloud:np.array, flow:np.array, k_nn:int):
+    nn_idxs = calc_knn(point_cloud, k_nn)
+    smooth_flow = flow_median_filter(flow, nn_idxs, k_nn) if (k_nn > 1) else flow # [N, 3]
+    return smooth_flow
