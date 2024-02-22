@@ -45,7 +45,7 @@ class Corr2ConstraintsConvertor:
             error = np.linalg.norm((gt_flow_in_target_coords-flow_template_unlabeled_naive),2,axis=1)
             
             save_contour_flow_sections_visualization(
-                output_constraints_shape=output_constraints_shape, 
+                output_shape=output_constraints_shape, 
                 plot_folder=confidence_matrix_manipulations_config["plot_folder"], 
                 point_cloud=template_point_cloud, 
                 mask=np.ones_like(mask), 
