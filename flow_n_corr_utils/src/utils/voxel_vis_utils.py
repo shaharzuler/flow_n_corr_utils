@@ -15,8 +15,8 @@ def voxelize_and_visualize_3d_vecs(vectors_cloud, point_cloud, output_shape, tex
     img_norm = get_norm_img(img_path, output_shape)
 
     save_contour_flow_sections_visualization(
-        output_constraints_shape=output_shape, 
-        plot_folder=output_folder, 
+        output_shape=output_shape, 
+        output_folder=output_folder, 
         point_cloud=point_cloud, 
         mask=None, 
         voxelized_flow=voxelized_vectors, 

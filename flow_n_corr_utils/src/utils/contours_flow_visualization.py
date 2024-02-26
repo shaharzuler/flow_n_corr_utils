@@ -14,7 +14,7 @@ def save_contour_flow_sections_visualization(output_shape, output_folder, point_
     if mask is not None:
         flow_template_unlabeled_outliars[mask] = np.nan
     voxelized_flow_outliars = voxelize_flow(flow_template_unlabeled_outliars, point_cloud, output_shape) 
-    arrows_disp_outliars = disp_flow_as_arrows(img=orig_image.copy(), seg=None, flow=xyz3_to_3xyz(voxelized_flow_outliars), arrow_scale_factor=1, emphesize=True) ### TODO extract method
+    arrows_disp_outliars = disp_flow_as_arrows(img=orig_image.copy(), seg=None, flow=xyz3_to_3xyz(voxelized_flow_outliars), arrow_scale_factor=1, emphesize=True) 
     
     arrows_disp_avg = (arrows_disp+arrows_disp_outliars)/2
 

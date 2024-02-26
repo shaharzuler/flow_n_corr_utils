@@ -12,7 +12,7 @@ def xyz3_to_3xyz(flow:np.ndarray) -> np.ndarray:
 def t3xyz_to_xyz3(flow:np.ndarray) -> np.ndarray:
     return np.transpose(flow, (1,2,3,0))
 
-def corr_cloud_to_flow_cloud(point_cloud1:np.ndarray, point_cloud2:np.ndarray, correspondence12:np.ndarray) -> np.ndarray: #TODO move to some utils
+def corr_cloud_to_flow_cloud(point_cloud1:np.ndarray, point_cloud2:np.ndarray, correspondence12:np.ndarray) -> np.ndarray: 
     point_cloud2_in_point_cloud1_coords = point_cloud2[correspondence12] # shape: [N,3]
     flow12 = point_cloud2_in_point_cloud1_coords - point_cloud1 # shape: [N,3]
 

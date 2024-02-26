@@ -5,7 +5,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from .utils.flow_utils_basic import corr_cloud_to_flow_cloud, voxelize_flow, smooth_flow
-from .utils.flow_utils_complex import voxelize_and_visualize_3d_vecs
+from .utils.voxel_vis_utils import voxelize_and_visualize_3d_vecs
 from .utils.h5_utils import get_point_clouds_and_p_from_h5
 
 from .utils.image_utils import get_norm_img
@@ -17,10 +17,6 @@ from .confidence_matrix_manipulations import get_correspondence_from_p
 class Corr2ConstraintsConvertor:
     def __init__(self) -> None:
         pass
-
-    def convert_normals_cloud_to_voxelized_normals(self, normals, point_cloud, output_shape, plot_folder, img_path=None): # TODO: after save_constraints_sections_visualization is moved to some utils, this method should be in it's own class.
-        
-        return voxelize_and_visualize_3d_vecs(normals, point_cloud, output_shape, "normals", "normals", plot_folder, img_path=img_path)
 
     def convert_corr_to_constraints(
         self, correspondence_h5_path:str, k_nn:int, output_folder_path:str, 
@@ -46,7 +42,7 @@ class Corr2ConstraintsConvertor:
             
             save_contour_flow_sections_visualization(
                 output_shape=output_constraints_shape, 
-                plot_folder=confidence_matrix_manipulations_config["plot_folder"], 
+                output_folder=confidence_matrix_manipulations_config["plot_folder"], 
                 point_cloud=template_point_cloud, 
                 mask=np.ones_like(mask), 
                 voxelized_flow=gt_voxelized_flow, 
@@ -59,7 +55,7 @@ class Corr2ConstraintsConvertor:
         
         return output_file_path
 
-    def plot_error_vs_var(self, plot_folder, variance, error): # TODO 
+    def plot_error_vs_var(self, plot_folder, variance, error):
         plt.close()
         plt.scatter(variance, error)
         plt.xlabel("Variance")

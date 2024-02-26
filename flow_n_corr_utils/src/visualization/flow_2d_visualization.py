@@ -144,7 +144,7 @@ def disp_flow_error_colors(flows_pred:np.ndarray, flows_gt:np.ndarray, flows_con
     abs_diff_disp = _disp_single_flow_colors(diff, text="error")
     
     abs_diff = np.abs(diff)
-    abs_flow_diff = np.sum(np.dstack(get_2d_flow_sections(abs_diff)), axis=0) #clip?  #TODO maybe add epe map here
+    abs_flow_diff = np.sum(np.dstack(get_2d_flow_sections(abs_diff)), axis=0) #clip?
     abs_flow_diff_rgb = cv2.cvtColor(abs_flow_diff.astype(np.float32), cv2.COLOR_GRAY2RGB)
     abs_flow_diff_rgb = cv2.putText(abs_flow_diff_rgb, "absolute error", org=(10,20), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.7, color=(1.,0,0), thickness=2)
     abs_flow_diff_rgb = np.transpose(abs_flow_diff_rgb, (2,0,1))
