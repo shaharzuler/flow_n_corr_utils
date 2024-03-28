@@ -36,7 +36,7 @@ def crop_flow_by_mask_center(center, x, y, z, flow_field_rotated:np.array, orig_
     flow_field_cropped = flow_field_rotated[ start[0,0]:end[0,0], start[0,1]:end[0,1], start[0,2]:end[0,2], : ]
     return flow_field_cropped
 
-def interpolate_from_flow_in_axis(k:int, voxelized_flow:np.array, axis:int) -> np.array: #TODO duplication w 4dcostunrolling and 2ts_corr_main
+def interpolate_from_flow_in_axis(k:int, voxelized_flow:np.array, axis:int) -> np.array:
     '''Take voxelized flow with nans/infs and interpolate flow values to nans/infs for voxels which are close enough to finite values'''
     data_mask = np.isfinite(voxelized_flow[:,:,:,axis] )
     data_coords = np.array(np.where(data_mask)).T
