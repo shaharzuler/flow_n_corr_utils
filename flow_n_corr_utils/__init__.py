@@ -11,3 +11,4 @@ from .src.flow_rotator import FlowRotator
 from .src.utils.missing_vals_interp import interp_to_fill_nans, interp_missing_values
 from .src.utils.image_utils import min_max_norm, t3xy_to_xy3
 from .src.utils.contours_flow_visualization import save_contour_flow_sections_visualization
+from .src.utils.flow_attachment_utils import attach_flow_between_segs
