@@ -7,6 +7,10 @@ def min_max_norm(img):
     img_norm = (img-min_)/(max_-min_) 
     return img_norm
 
+def min_max_norm_det_vals(img, min_, max_):
+    img_norm = (img-min_)/(max_-min_) 
+    return img_norm
+
 def get_norm_img(img_path, output_shape):
     if img_path is not None:
         orig_img = np.load(img_path)
