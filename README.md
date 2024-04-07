@@ -1,6 +1,11 @@
 # Flow and Correspondence Utils
 A package designed for analyzing 3D optical flow and 3D correspondence results, as well as visualizing and providing common tools for processing them.
 
+## Installation
+```bash
+pip install git+github.com/shaharzuler/flow_n_corr_utils.git
+```
+
 ## Key Capabilities:
 
 
