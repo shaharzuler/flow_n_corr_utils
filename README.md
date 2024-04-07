@@ -6,7 +6,7 @@ A package designed for analyzing 3D optical flow and 3D correspondence results, 
 
 ### Converting Representation Methods
 
-`convert_corr_to_constraints`: Given a confidence correspondence matrix (P), performs smoothing and voxelizes the flow vectors onto a grid. It visualizes  the resulting vectors in 3D space.
+`convert_corr_to_constraints`: Given a confidence correspondence matrix (P), performs smoothing and voxelizes the flow vectors onto a grid. It visualizes the resulting vectors in 3D space.
 
 `flow_to_corr`: Given flow vectors along with target and source point clouds, this function extracts correspondences from them.
 It calculates the estimated source coordinates based on the flow field in target coordinates and determines indices of the target point cloud that correspond to the source point cloud using a k-nearest neighbors algorithm.
@@ -14,13 +14,13 @@ It calculates the estimated source coordinates based on the flow field in target
 `corr_cloud_to_flow_cloud`: This function computes flow vectors between two point clouds based on given correspondences. For each correspondence, it calculates the flow vector by subtracting the coordinates of the point in the first point cloud from the coordinates of the corresponding point in the second point cloud. The resulting flow matrix has a shape of [N, 3].
 
 
-### Interpolation to Fill Nans/Infs
+### Interpolation to Fill NaNs/Infs
 
 `interp_to_fill_nans`: This function interpolates all NaN values in a 3D flow field by patchifying and interpolating 2D patches of data (for computational efficiency). After selecting the flow axis and patchifying, it utilizes `interp_missing_values`.
 
 `interp_missing_values`: This function interpolates NaN values along a flow field axis.
 
-`interpolate_from_flow_in_axis`: This function interpolates flow values for voxels containing NaNs or Infs based on nearby finite values. It operates only if the neighboring voxels containing finite values surround the NaN/Inf voxel.
+`interpolate_from_flow_in_axis`: This function interpolates flow values for voxels containing NaN or Inf values based on nearby finite values. It operates only if the neighboring voxels containing finite values surround the NaN/Inf voxel.
 
 
 ### Flow visualization
@@ -29,7 +29,7 @@ It calculates the estimated source coordinates based on the flow field in target
 
 ![sample image visualization](readme_data/readme_data2.png)
 
-The functions `disp_warped_img`, `add_mask`, `get_mask_contours`, `disp_flow_as_arrows`, `disp_sparse_flow_as_arrows`, `disp_flow_colors` are used for 2D visualization of 3D optical flow and are widely used in our [4DCT cost unrolling repo](https://www.github.com/shaharzuler/four_d_ct_cost_unrolling)
+The functions `disp_warped_img`, `add_mask`, `get_mask_contours`, `disp_flow_as_arrows`, `disp_sparse_flow_as_arrows`, `disp_flow_colors` are used for 2D visualization of 3D optical flow and are widely used in our [4DCT cost unrolling repo](https://www.github.com/shaharzuler/four_d_ct_cost_unrolling).
 
 ![sample image visualization](readme_data/readme_data.png)
 
