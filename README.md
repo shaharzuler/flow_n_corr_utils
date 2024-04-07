@@ -50,3 +50,6 @@ The functions `disp_warped_img`, `add_mask`, `get_mask_contours`, `disp_flow_as_
 `voxelize_flow`: This function voxelizes flow vectors onto a grid based on their corresponding point cloud coordinates.
 
 `attach_flow_between_segs`: This function attaches sparse flow values from the surface of one segmentation map to the nearest neighbors on the surface of another segmentation map.
+
+## Full Implementation
+For a comprehensive implementation of our paper, utilizing this package along with additional functionalities, please refer to [CardioSpectrum](https://github.com/shaharzuler/CardioSpectrum) implementation.
