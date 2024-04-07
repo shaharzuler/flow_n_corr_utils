@@ -203,7 +203,7 @@ def _get_arrow_start_end_coords(contour:np.ndarray, slice_flow:np.ndarray, arrow
 
 def _add_arrows_from_mask_on_2d_img(img_slice:np.ndarray, mask_slice:np.ndarray, flow_slice:np.ndarray, arrow_scale_factor:int, slice_name:str, seg=None, emphesize=False, arrow_color=None, circle_color=None, thickness:int=1, paper_vis_config:bool=False) -> np.ndarray:
     if seg is None:
-        contours = sparse_flow_in_contours_format(mask_slice)
+        contours = _sparse_flow_in_contours_format(mask_slice)
     else:
         contours = get_mask_contours(mask_slice) # shape: [N,1,2]
     if len(contours) > 0:
@@ -212,7 +212,7 @@ def _add_arrows_from_mask_on_2d_img(img_slice:np.ndarray, mask_slice:np.ndarray,
         img_slice_w_arrows = img_slice
     return img_slice_w_arrows
 
-def sparse_flow_in_contours_format(mask_slice:np.ndarray, scale_down_factor:int=2):
+def _sparse_flow_in_contours_format(mask_slice:np.ndarray, scale_down_factor:int=2):
     return np.expand_dims(np.array([*np.where(mask_slice)]).T,1)[::scale_down_factor,:,::-1] # shape: [N,1,2]
 
 def _get_most_contours_from_hirarchies(contours:Tuple) -> np.ndarray:

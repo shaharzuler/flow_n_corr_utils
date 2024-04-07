@@ -18,10 +18,10 @@ def corr_cloud_to_flow_cloud(point_cloud1:np.ndarray, point_cloud2:np.ndarray, c
 
     return flow12 # shape: [N,3]
 
-def voxelize_flow(flow:np.array, point_cloud:np.array, output_constraints_shape:Tuple) -> np.array:
+def voxelize_flow(flow:np.array, point_cloud:np.array, output_grid_shape:Tuple) -> np.array:
     template_idxs = np.round(point_cloud).astype(int)
 
-    voxels_flow = np.empty(output_constraints_shape)
+    voxels_flow = np.empty(output_grid_shape)
     voxels_flow[:] = np.nan
 
     voxels_flow[template_idxs[:,0], template_idxs[:,1], template_idxs[:,2], 0] = flow[:,0] 
