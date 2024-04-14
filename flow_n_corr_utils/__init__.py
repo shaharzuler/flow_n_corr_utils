@@ -1,5 +1,5 @@
 
-from .src.correnpondence_to_constraints import Corr2ConstraintsConvertor
+from .src.correnpondence_to_constraints import convert_corr_to_constraints
 from .src.flow_to_correspondence import flow_to_corr
 from .src.utils.geometry_utils import knn, calc_knn, flow_median_filter
 from .src.utils.flow_utils_basic import crop_flow_by_mask_center, smooth_flow, voxelize_flow, xyz3_to_3xyz, t3xyz_to_xyz3, interpolate_from_flow_in_axis, corr_cloud_to_flow_cloud
